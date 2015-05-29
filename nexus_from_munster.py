@@ -8,6 +8,22 @@ import MySQLdb
 MISSING = "-"
 GAP = "?"
 
+_possible_symbols = list(string.ascii_letters) + list(string.digits)
+_sym_map = {}
+
+
+def get_symbol(x):
+    """
+    Return an appropriate symbol to use for MyBayes, always returning the
+    same symbol for the same input.
+    """
+    if x in _sym_map:
+        return _sym_map[x]
+    else:
+        sym = _possible_symbols.pop(0)
+        _sym_map[x] = sym
+        return sym
+
 
 def nexus(host, db, user, password, table, book, perc, filename):
     """
@@ -40,11 +56,7 @@ def nexus(host, db, user, password, table, book, perc, filename):
         wit_map = {}
         for row in cur.fetchall():
             ident = row[1]
-            if len(ident) > 1 and ident.startswith('z'):
-                # For now, we'll treat such things as "Missing"
-                label = MISSING
-            else:
-                label = ident
+            label = get_symbol(ident)
 
             wit_map[row[0]] = label
             symbols.add(label)
