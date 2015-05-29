@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import sys
 import re
 
 """
@@ -59,11 +58,37 @@ MATRIX
 END;""", re.DOTALL)
 
 
+template = """#nexus
+BEGIN Taxa;
+DIMENSIONS ntax={ntax};
+TAXLABELS
+{taxa}
+;
+END;
+BEGIN Characters;
+DIMENSIONS nchar={nchar};
+
+FORMAT
+    datatype=STANDARD
+    missing={missing}
+    gap={gap}
+    symbols="{symbols}"
+;
+MATRIX
+{matrix};
+END;
+"""
+
+MISSING = '-'
+GAP = '?'
+
+
 class Nexus(object):
     def __init__(self):
-        self.taxa = set()
-        self.symbols = set()
+        self.taxa = []
+        self.symbols = []
         self.lines = {}
+        self.nchar = 0
 
     def load(self, filename):
         """
@@ -81,28 +106,87 @@ class Nexus(object):
         self.taxa = taxa
         print "  Loaded {} taxa: {}".format(ntax, ', '.join(taxa))
 
-        nchar = int(match.group(3))
+        self.nchar = int(match.group(3))
         self.symbols = match.group(4).split()
         print "  Loaded {} characters and {} symbols ({})".format(
-            nchar, len(self.symbols), ', '.join(self.symbols))
+            self.nchar, len(self.symbols), ', '.join(self.symbols))
 
         for stripe in match.group(5).splitlines():
             taxon, chars = stripe.split(' ', 1)
-            assert len(chars) == nchar
+            assert len(chars) == self.nchar
             self.lines[taxon] = chars
 
         print "  Loaded matrix"
 
+    def add_nexus(self, other_nexus):
+        """
+        Add data from another nexus file object to this one, creating a larger
+        combined nexus file.
+        """
+        for t in other_nexus.taxa:
+            if t not in self.taxa:
+                self.taxa.append(t)
 
-def combine(input_files, output_file):
-    nex = []
+        self.symbols = sorted(set(self.symbols + other_nexus.symbols))
+
+        self.nchar += other_nexus.nchar
+
+        new_lines = {}
+
+        for t in self.taxa:
+            line = self.lines.get(t, MISSING * self.nchar)
+            line += other_nexus.lines.get(t, MISSING * other_nexus.nchar)
+            new_lines[t] = line
+
+        self.lines = new_lines
+
+    def write(self, output, extant_perc=0):
+        """
+        Write the nexus data out to a file - including only those taxa that
+        are extant in extant_perc (percentage) of characters.
+        """
+        target_chars = self.nchar * extant_perc / 100.0
+        print "Only including taxa extant in {} ({}%) of characters".format(target_chars, extant_perc)
+
+        taxa = self.taxa
+
+        matrix = []
+        for t in self.taxa:
+            line = self.lines[t]
+            extant = [x for x in line if x not in (MISSING, GAP)]
+            if len(extant) < target_chars:
+                print "Deleting {} as it's only extant in {} characters".format(t, len(extant))
+                del taxa[taxa.index(t)]
+                continue
+            matrix.append('{} {}'.format(t, line))
+
+        with open(output, 'w') as f:
+            f.write(template.format(ntax=len(taxa),
+                                    taxa='\n'.join(taxa),
+                                    nchar=self.nchar,
+                                    symbols=' '.join(self.symbols),
+                                    matrix='\n'.join(matrix),
+                                    missing=MISSING,
+                                    gap=GAP))
+
+        print "Written combined nexus file {}".format(output)
+
+
+def combine(input_files, output_file, perc):
+    nex = Nexus()
     for i in input_files:
         n = Nexus()
         n.load(i)
-        nex.append(n)
+        nex.add_nexus(n)
 
-    print nex
+    nex.write(output_file, perc)
+
 
 if __name__ == "__main__":
-    assert len(sys.argv) > 2, "Usage: $0 input [input] [input] output"
-    combine(sys.argv[1:-1], sys.argv[-1])
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-e', '--extant_perc', default=0, type=int, help='Percentage of variant units a witness must attest to be included')
+    parser.add_argument('input_file', nargs='+', help='Input nexus files')
+    parser.add_argument('output_file', help='Filename to save combined nexus data to')
+    args = parser.parse_args()
+    combine(args.input_file, args.output_file, args.extant_perc)
