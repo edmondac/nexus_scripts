@@ -1,4 +1,9 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/python
+
+# NOTE: The '''# -*- coding: utf-8 -*-''' first line here is important as
+# otherwise you get a file that MrBayes can't read properly (for some reason...)
+# even though this should all be ascii......
 
 import re
 
@@ -75,7 +80,8 @@ FORMAT
     symbols="{symbols}"
 ;
 MATRIX
-{matrix};
+{matrix}
+;
 END;
 """
 
@@ -148,6 +154,9 @@ class Nexus(object):
         target_chars = self.nchar * extant_perc / 100.0
         print "Only including taxa extant in {} ({}%) of characters".format(target_chars, extant_perc)
 
+        #self.taxa = self.taxa[:3] ## FIXME
+        #self.nchar = 1000 ##FIXME
+
         taxa = self.taxa
 
         matrix = []
@@ -158,16 +167,17 @@ class Nexus(object):
                 print "Deleting {} as it's only extant in {} characters".format(t, len(extant))
                 del taxa[taxa.index(t)]
                 continue
-            matrix.append('{} {}'.format(t, line))
+            matrix.append('{} {}'.format(t, line[:self.nchar]))##FIXME
 
+        data = template.format(ntax=len(taxa),
+                               taxa='\n'.join(taxa),
+                               nchar=self.nchar,
+                               symbols=' '.join(self.symbols),
+                               matrix='\n'.join(matrix),
+                               missing=MISSING,
+                               gap=GAP)
         with open(output, 'w') as f:
-            f.write(template.format(ntax=len(taxa),
-                                    taxa='\n'.join(taxa),
-                                    nchar=self.nchar,
-                                    symbols=' '.join(self.symbols),
-                                    matrix='\n'.join(matrix),
-                                    missing=MISSING,
-                                    gap=GAP))
+            f.write(unicode(data))
 
         print "Written combined nexus file {}".format(output)
 
