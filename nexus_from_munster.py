@@ -56,10 +56,17 @@ def nexus(host, db, user, password, table, book, perc, filename):
         wit_map = {}
         for row in cur.fetchall():
             ident = row[1]
-            label = get_symbol(ident)
+            # zw: the textual evidence does not allow to cite the witness for
+            # only one of the variants (equivalent of the double arrow in the
+            # ECM apparatus).
+            # zz: lacuna
+            if ident in ('zw', 'zz'):
+                label = MISSING
+            else:
+                label = get_symbol(ident)
+                symbols.add(label)
 
             wit_map[row[0]] = label
-            symbols.add(label)
 
         stripe = []
         for vu in vus:
