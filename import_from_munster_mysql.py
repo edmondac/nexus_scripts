@@ -127,13 +127,13 @@ def get_ga(wit):
     wit = int(wit)
 
     if 100000 < wit < 200000:
-        ret = "P{}".format(int(str(wit)[2:-1]))
+        ret = "P{}".format(int(str(wit)[1:-1]))
     elif 200000 < wit < 300000:
-        ret = "0{}".format(int(str(wit)[2:-1]))
+        ret = "0{}".format(int(str(wit)[1:-1]))
     elif 300000 < wit < 400000:
-        ret = str(int(str(wit)[2:-1]))
+        ret = str(int(str(wit)[1:-1]))
     elif 400000 < wit < 500000:
-        ret = "L{}".format(int(str(wit)[2:-1]))
+        ret = "L{}".format(int(str(wit)[1:-1]))
     elif wit == 1:
         # Special case
         # XXX - maybe ZEUGE would be a better column than HSNR?
