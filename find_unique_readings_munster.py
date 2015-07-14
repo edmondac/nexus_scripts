@@ -22,7 +22,8 @@ def compare(host, db, user, password, table, witnesses, quiet=False):
     cur = db.cursor()
 
     vu_mapping = {}
-    cur.execute("SELECT id, bv, ev, bw, ew FROM {}_ed_vus".format(table))
+    #cur.execute("SELECT id, bv, ev, bw, ew FROM {}_ed_vus".format(table))
+    cur.execute("SELECT id, vbeg, vend, wbeg, wend FROM {}_ed_vus".format(table))
     for row in cur.fetchall():
         i, bv, ev, bw, ew = row
         ref = "{}/".format(bv)
