@@ -48,7 +48,7 @@ n_included_chars = n_chars - len(ignore_chars)
 output = []
 n_header_lines = len(str(n_chars))
 for l in range(n_header_lines):
-    line = ' ' * 10
+    line = ' ' * 7
     for x in range(n_chars):
         y = x + 1  # start at 1
         if y in ignore_chars:
@@ -62,13 +62,12 @@ output.extend([''] * 4)
 
 for n, lab in enumerate(matrix):
     stripe = matrix[lab]
-    output.append("H_{}{}  1".format(str(n + 1).ljust(8), ''.join(x for i, x in enumerate(stripe) if i + 1 not in ignore_chars)))
-    #output.append("H_{}{}  1".format(lab.ljust(8), ''.join(x for i, x in enumerate(stripe) if i + 1 not in ignore_chars)))
+    output.append("H_{}{}  1".format(str(n + 1).ljust(5), ''.join(x for i, x in enumerate(stripe) if i + 1 not in ignore_chars)))
     print("\t H_{} is {}".format(n + 1, lab))
 
-output.extend([''])
-
-output.append('10' * n_included_chars)
+output.append('')
+output.append('1' * n_included_chars)
+output.append('')
 
 with open(sys.argv[2], 'w') as out:
     out.write('\n'.join(output))
