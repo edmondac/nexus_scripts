@@ -4,7 +4,7 @@ DNA = 'ACTG'
 PROTIEN = 'FSTKEYVQMCLAWPHDRIG'  # Amino acids... NOTE: We miss out 'N' because Network.exe gets confused by it...
 
 
-def subset(input_file, output_file, taxa, trans):
+def subset(input_file, output_file, taxa, trans, frag_perc):
     """
     Create a subset of the supplied nexus file using only the listed taxa.
 
@@ -12,6 +12,7 @@ def subset(input_file, output_file, taxa, trans):
     @param output_file: filename for new nexus file
     @param taxa: list of taxa to include
     @param trans: characters to transform into
+    @param frag_perc: (int) fragmentation percentage above which witnesses are excluded
 
     Constant characters are removed.
     """
@@ -25,6 +26,15 @@ def subset(input_file, output_file, taxa, trans):
             n, chars = line.split()
             if n not in taxa:
                 continue
+
+            total_chars = len(chars)
+            missing_chars = chars.count('?') + chars.count('-')
+            my_frag_perc = (missing_chars * 100.0 / total_chars)
+            if my_frag_perc > frag_perc:
+                print("{} is {} fragmented - excluding it"
+                      .format(n, my_frag_perc))
+                continue
+
             stripes[n] = chars
 
         if line.strip() == 'MATRIX':
@@ -45,11 +55,13 @@ def subset(input_file, output_file, taxa, trans):
         if len([a for a in col if a not in ('-', '?')]) > len(trans):
             raise ValueError("More than {} character states - cannot do transform".format(len(trans)))
         use = list(tuple(trans))
+
         for s in col:
             if s in ('-', '?'):
                 col_conv[s] = s
             else:
                 col_conv[s] = use.pop(0)
+
         convs[i] = col_conv
 
     if trans == DNA:
@@ -85,6 +97,8 @@ if __name__ == "__main__":
                         help='Transform the data into DNA labels (ACTG)')
     parser.add_argument('-a', '--amino-acid-transform', action="store_true", default=False,
                         help='Transform the data into protien labels (FSTKEYVQMCLAWPHDRIG)')  # NOTE: We miss out 'N' because Network.exe gets confused by it...
+    parser.add_argument('-f', '--fragmentation-level', default=25, type=int,
+                        help='Acceptable fragmentation level (percentage) above which witnesses will be excluded')
     parser.add_argument('-i', '--input-file',
                         help='Input filename')
     parser.add_argument('-o', '--output-file',
@@ -103,4 +117,4 @@ if __name__ == "__main__":
         print("Please specify -a or -d")
         raise SystemExit(1)
 
-    subset(args.input_file, args.output_file, args.taxon, transform)
+    subset(args.input_file, args.output_file, args.taxon, transform, args.fragmentation_level)
