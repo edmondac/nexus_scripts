@@ -45,6 +45,10 @@ def convert(inputfile, ignore_missing):
     if not is_dna and not is_protien:
         raise ValueError("Not DNA or protien file - help!")
 
+    if is_protien and not ignore_missing:
+        print("WARNING: Amino acid file requires 'ignore-missing' - setting it now.")
+        ignore_missing = True
+
     # total input characters
     n_chars = len(stripe)
 
@@ -80,7 +84,7 @@ def convert(inputfile, ignore_missing):
     for n, lab in enumerate(matrix):
         stripe = matrix[lab]
         if ignore_missing:
-            stripe_s = ''.join(x for i, x in enumerate(stripe) if i + 1 not in ignore_chars)
+            stripe_s = ''.join(x for i, x in enumerate(stripe) if i + 1 not in missing_chars)
         else:
             stripe_s = ''.join(stripe)
             stripe_s = stripe_s.replace(GAP, 'N')

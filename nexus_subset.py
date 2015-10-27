@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 DNA = 'ACTG'
-PROTIEN = 'FSTNKEYVQMCLAWPHDRIG'  # Amino acids
+PROTIEN = 'FSTKEYVQMCLAWPHDRIG'  # Amino acids... NOTE: We miss out 'N' because Network.exe gets confused by it...
 
 
 def subset(input_file, output_file, taxa, trans):
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--dna-transform', action="store_true", default=False,
                         help='Transform the data into DNA labels (ACTG)')
     parser.add_argument('-a', '--amino-acid-transform', action="store_true", default=False,
-                        help='Transform the data into protien labels (FSTNKEYVQMCLAWPHDRIG)')
+                        help='Transform the data into protien labels (FSTKEYVQMCLAWPHDRIG)')  # NOTE: We miss out 'N' because Network.exe gets confused by it...
     parser.add_argument('-i', '--input-file',
                         help='Input filename')
     parser.add_argument('-o', '--output-file',
