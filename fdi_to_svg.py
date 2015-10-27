@@ -5,7 +5,6 @@ Note - this is strictly restricted to the FDI files I've been using...
 """
 
 import svgwrite
-from svgwrite import cm, mm
 import re
 from collections import namedtuple
 
@@ -94,7 +93,6 @@ def convert(fdi_f, svg_f):
     sizemult = size_x / 600.0
     print("Magic size multiplication faction: {}".format(sizemult))
 
-
     print(str((min_x, max_x, min_y, max_y)))
 
     dwg = svgwrite.Drawing(filename=svg_f, size=(size_x + padding, size_y + padding))
@@ -136,10 +134,10 @@ def convert(fdi_f, svg_f):
 
 if __name__ == "__main__":
     import argparse
+    import os.path
 
     parser = argparse.ArgumentParser(description="Convert an FDI file into an SVG")
     parser.add_argument('fdifile', help='FDI input filename')
-    parser.add_argument('svgfile', help='SVG output filename')
     args = parser.parse_args()
 
-    convert(args.fdifile, args.svgfile)
+    convert(args.fdifile, "{}.svg".format(os.path.splitext(args.fdifile)[0]))
