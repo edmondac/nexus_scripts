@@ -78,7 +78,7 @@ def convert(inputfile, ignore_missing):
 
         output.append(line)
 
-    output.extend([''] * 4)
+    output.extend([''] * (4 if is_dna else 3))
 
     mapping = {}
     for n, lab in enumerate(matrix):
