@@ -19,12 +19,20 @@ def subset(input_file, output_file, taxa, trans, frag_perc):
     with open(input_file) as f:
         data = f.read()
 
+    auto_taxa = False
+    if taxa == ['all']:
+        print("Using all taxa found in input file")
+        auto_taxa = True
+        taxa = []
+
     in_m = False
     stripes = {}
     for line in data.splitlines():
         if in_m and ' ' in line:
             n, chars = line.split()
-            if n not in taxa:
+            if auto_taxa:
+                taxa.append(n)
+            elif n not in taxa:
                 continue
 
             total_chars = len(chars)
@@ -104,7 +112,7 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--output-file',
                         help='Output filename')
     parser.add_argument('taxon', nargs='+',
-                        help="Taxa to include")
+                        help="Taxa to include (can be 'all')")
     args = parser.parse_args()
 
     transform = None
