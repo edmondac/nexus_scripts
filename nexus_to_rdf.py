@@ -61,24 +61,19 @@ def convert(inputfile, ignore_missing):
         for i, char in enumerate(matrix[lab]):
             if char == GAP or char == MISSING:
                 missing_chars.add(i + 1)
+
     print("Characters with GAP or MISSING: {}".format(missing_chars))
 
     n_included_chars = n_chars - (len(missing_chars) if ignore_missing else 0)
+    output = ["  ;1.0"]
+    char_line = []
+    for char in range(n_chars):
+        if char in missing_chars and ignore_missing:
+            continue
+        char_line.append("{}\t;".format(char))
 
-    output = []
-    n_header_lines = len(str(n_chars))
-    for l in range(n_header_lines):
-        line = ' ' * 7
-        for x in range(n_chars):
-            y = x + 1  # start at 1
-            if y in missing_chars and ignore_missing:
-                continue
-            y_s = str(y).ljust(n_header_lines)
-            line += y_s[l]
-
-        output.append(line)
-
-    output.extend([''] * (4 if is_dna else 3))
+    output.append(''.join(char_line))
+    output.append('1;' * n_included_chars)
 
     mapping = {}
     for n, lab in enumerate(matrix):
@@ -89,13 +84,10 @@ def convert(inputfile, ignore_missing):
             stripe_s = ''.join(stripe)
             stripe_s = stripe_s.replace(GAP, 'N')
             stripe_s = stripe_s.replace(MISSING, 'N')
-        output.append("H_{}{}  1".format(str(n + 1).ljust(5), stripe_s))
+        output.append(">H_{}  ;1;;;;;;;".format(str(n + 1).ljust(5)))
+        output.append(stripe_s)
         print("\t H_{} is {}".format(n + 1, lab))
         mapping['H_{}'.format(n + 1)] = lab
-
-    output.append('')
-    output.append('1' * n_included_chars)
-    output.append('')
 
     if is_dna:
         ext = 'rdf'
