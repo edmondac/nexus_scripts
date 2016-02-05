@@ -96,7 +96,7 @@ def parse(fdi_f):
     return params, taxa, links
 
 
-def convert(fdi_f, svg_f):
+def convert(fdi_f, svg_f, shrink_factor=1):
     params, taxa, links = parse(fdi_f)
 
     min_x = 10e10
@@ -121,7 +121,7 @@ def convert(fdi_f, svg_f):
     offset_x = padding // 2 - min_x
     offset_y = padding // 2 - min_y
 
-    sizemult = size_x / 600.0
+    sizemult = size_x * shrink_factor / 600.0
     print("Magic size multiplication faction: {}".format(sizemult))
 
     print(str((min_x, max_x, min_y, max_y)))
@@ -169,6 +169,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Convert an FDI file into an SVG")
     parser.add_argument('fdifile', help='FDI input filename')
+    parser.add_argument('--shrink', default=1, type=float, help='Shrink factor to apply to circles (e.g. 0.5). Default is 1.')
     args = parser.parse_args()
 
-    convert(args.fdifile, "{}.svg".format(os.path.splitext(args.fdifile)[0]))
+    svgfile = "{}.svg".format(os.path.splitext(args.fdifile)[0])
+    convert(args.fdifile, svgfile, args.shrink)
