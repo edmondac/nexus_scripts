@@ -67,10 +67,10 @@ def convert(inputfile, ignore_missing):
     n_included_chars = n_chars - (len(missing_chars) if ignore_missing else 0)
     output = ["  ;1.0"]
     char_line = []
-    for char in range(n_chars):
+    for char in range(1, n_chars):
         if char in missing_chars and ignore_missing:
             continue
-        char_line.append("{}\t;".format(char))
+        char_line.append("CH{};".format(char))
 
     output.append(''.join(char_line))
     output.append('1;' * n_included_chars)
@@ -84,6 +84,9 @@ def convert(inputfile, ignore_missing):
             stripe_s = ''.join(stripe)
             stripe_s = stripe_s.replace(GAP, 'N')
             stripe_s = stripe_s.replace(MISSING, 'N')
+
+        assert len(stripe_s) == n_included_chars
+
         output.append(">H_{}  ;1;;;;;;;".format(str(n + 1).ljust(5)))
         output.append(stripe_s)
         print("\t H_{} is {}".format(n + 1, lab))

@@ -45,8 +45,10 @@ def subset(input_file, output_file, taxa, trans, frag_perc):
 
             stripes[n] = chars
 
-        if line.strip() == 'MATRIX':
+        if line.strip().upper() == 'MATRIX':
             in_m = True
+
+    assert stripes, stripes
 
     keep = []
     convs = {}
