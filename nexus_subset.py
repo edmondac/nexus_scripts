@@ -61,16 +61,20 @@ def subset(input_file, output_file, taxa, trans, frag_perc):
 
         col_conv = {}
 
-        # Transform
-        if len([a for a in col if a not in ('-', '?')]) > len(trans):
-            raise ValueError("More than {} character states - cannot do transform".format(len(trans)))
-        use = list(tuple(trans))
+        if trans:
+            # Transform
+            if len([a for a in col if a not in ('-', '?')]) > len(trans):
+                raise ValueError("More than {} character states - cannot do transform".format(len(trans)))
+            use = list(tuple(trans))
 
         for s in col:
-            if s in ('-', '?'):
-                col_conv[s] = s
+            if trans:
+                if s in ('-', '?'):
+                    col_conv[s] = s
+                else:
+                    col_conv[s] = use.pop(0)
             else:
-                col_conv[s] = use.pop(0)
+                col_conv[s] = s
 
         convs[i] = col_conv
 
@@ -124,7 +128,6 @@ if __name__ == "__main__":
         transform = PROTIEN
 
     if not transform:
-        print("Please specify -a or -d")
-        raise SystemExit(1)
+        print("Not transforming symbols - see -a or -d for details")
 
     subset(args.input_file, args.output_file, args.taxon, transform, args.fragmentation_level)
