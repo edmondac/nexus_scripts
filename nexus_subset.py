@@ -30,17 +30,17 @@ def subset(input_file, output_file, taxa, trans, frag_perc):
     for line in data.splitlines():
         if in_m and ' ' in line:
             n, chars = line.split()
-            if auto_taxa:
-                taxa.append(n)
-            elif n not in taxa:
-                continue
-
             total_chars = len(chars)
             missing_chars = chars.count('?') + chars.count('-')
             my_frag_perc = (missing_chars * 100.0 / total_chars)
             if my_frag_perc > frag_perc:
                 print("{} is {} fragmented - excluding it"
                       .format(n, my_frag_perc))
+                continue
+
+            if auto_taxa:
+                taxa.append(n)
+            elif n not in taxa:
                 continue
 
             stripes[n] = chars
