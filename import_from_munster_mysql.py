@@ -5,32 +5,6 @@ import sys
 import MySQLdb
 
 
-#~ class Translator(object):
-    #~ def __init__(self):
-        #~ # We have latin text, that corresponds to greek
-        #~ #  and square brackets for supplied text (which we'll just accept and remove the brackets)
-        #~ #  and full stops representing missing text, which we'll replace with spaces
-        #~ #  and number refs (e.g. 18:2) representing verses, which we'll keep as is
-        #~ #  and brackets representing who knows what, which we'll leave alone
-        #~ #  and some odd characters that I don't understand, which we'll remove
-#~
-        #~ self.uni_from = u'.[]() abgdezhqiklmnxoprs~tufcyw0123456789:-ˆ¿¯,…?/'
-        #~ self.uni_to = u'___() αβγδεζηθικλμνξοπρσςτυφχψω0123456789:-_______'
-        #~ self.translate_table = {ord(frm): self.uni_to[i]
-                                #~ for i, frm in enumerate(self.uni_from)}
-#~
-    #~ def __call__(self, unicode_in):
-        #~ for x in unicode_in:
-            #~ if x not in self.uni_from:
-                #~ print x
-                #~ print unicode_in
-                #~ raise ValueError((x, unicode_in))
-        #~ ret = unicode_in.translate(self.translate_table)
-        #~ ret = ret.replace(u'_', u'')
-        #~ return ret
-#~ translate = Translator()
-
-
 def load_witness(witness, cur, table, dialect):
     """
     Load a particular witness from the db
@@ -48,40 +22,6 @@ def load_witness(witness, cur, table, dialect):
     for row in attestations:
         obj = {field_names[i]: val for i, val in enumerate(row)
                if field_names[i]}
-        #~ assert obj['CHBEG'] == obj['CHEND'], obj
-
-        #~ rdg = obj['RDG'].strip()
-#~
-        #~ # Square brackets...
-        #~ rdg = rdg.replace(u'»', u'[')
-        #~ rdg = rdg.replace(u'¼', u']')
-#~
-        #~ if obj['RDG'] == '\x88 \xbb2\xbca\r':
-            #~ print "Wierd: {}".format(obj['RDG'])
-            #~ continue
-        #~ if obj['SUFF'] == '*':
-            #~ # Original firsthand reading (before he corrected it)
-            #~ continue
-#~
-        #~ assert obj['SUFF'].strip() == '', obj
-#~
-        #~ if "/lectionary influence/" in rdg:
-            #~ rdg = rdg.replace("/lectionary influence/", "")
-#~
-        #~ if rdg == 'DEF':
-            #~ # Text deficient (lacuna, gap?)...
-            #~ greek = None
-            #~ ident = -1  # NOTE - this isn't the same as RNR == -1...
-#~
-        #~ elif rdg == 'SINE ADD':
-            #~ # Addition in another witness not present here
-            #~ greek = None
-            #~ ident = -2
-#~
-        #~ else:
-            #~ # Translate to unicode greek
-            #~ greek = translate(unicode(rdg.lower()))
-            #~ ident = None
 
         greek = obj['LESART'] if 'LESART' in obj else 'unavailable'
         ident = obj['VARID2']  # assumption is that this is ECM2's variant id
@@ -98,26 +38,9 @@ def load_witness(witness, cur, table, dialect):
         else:
             raise ValueError("Can't find vu")
 
-        #~ if ident is None:
-            #~ cur.execute(u"SELECT ident FROM {}_ed_map WHERE vu_id=%s AND greek=%s".format(table),
-                        #~ (vu_id, greek))
-            #~ for row in cur.fetchall():
-                #~ ident = row[0]
-                #~ break
-            #~ else:
-                #~ cur.execute(u"SELECT MAX(ident) FROM {}_ed_map WHERE vu_id=%s".format(table),
-                            #~ (vu_id, ))
-                #~ row = cur.fetchone()
-                #~ if row[0] is None:
-                    #~ ident = 1
-                #~ else:
-                    #~ ident = row[0] + 1
-
         cur.execute(u"""INSERT INTO {}_ed_map (witness, vu_id, greek, ident)
                         VALUES (%s, %s, %s, %s);""".format(table),
                     (get_ga(witness), vu_id, greek, ident))
-
-        #~ print witness, obj['VBEG'], obj['VEND'], obj['WBEG'], obj['WEND'], greek, ident
 
 
 def get_ga(wit):

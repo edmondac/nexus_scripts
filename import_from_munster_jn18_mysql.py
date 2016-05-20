@@ -112,8 +112,6 @@ def load_witness(witness, cur, table):
                         VALUES (%s, %s, %s, %s);""".format(table),
                     (witness, vu_id, greek, ident))
 
-        #~ print witness, obj['BV'], obj['EV'], obj['BW'], obj['EW'], greek, ident
-
 
 def load_all(host, db, user, password, table):
     """
