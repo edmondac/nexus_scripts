@@ -1,9 +1,12 @@
 """
-Convert a NEXUS tree into an SVG file
+Convert a NEXUS tree into PhyloXML (suitable for programs like Cytoscape (v2.8) with a plugin)
 
 Uses these packages:
 pip install python-nexus
 pip install biopython
+pip install pygraphviz
+  or probably: pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
+
 """
 
 import sys
@@ -55,21 +58,42 @@ class ConsensusTree(object):
 
         print("Importing into Phylo")
         tree = Phylo.read(consensus_tree, 'newick')
+        tree.ladderize()
 
-        print("Drawing tree - this could take a few minutes...")
-        output_file = "{}.svg".format(self.input_file)
-        tree.ladderize()   # Flip branches so deeper clades are displayed at top
-        plt.figure(figsize=(24, 24))
-        Phylo.draw(tree)
-        plt.axis('off')
-        plt.savefig(output_file)
-        import pdb; pdb.set_trace()
-        return
+        # This works, but isn't very pretty...
+        print(Phylo.draw_ascii(tree, column_width=200))
 
-        net = Phylo.to_networkx(tree)
-        G = networkx.nx_agraph.to_agraph(net)
-        G.node_attr.update(color="red", style="filled")
-        G.edge_attr.update(color="blue", width="2.0")
+        print("Exporting to phyloxml")
+        output_file = "{}.phyloxml".format(self.input_file)
+        Phylo.write(tree, output_file, 'phyloxml')
+
+        #~ print("Converting to graph")
+        #~ G = Phylo.to_networkx(tree)
+
+        #~ print("Outputting to GraphML")
+        #~ output_file = "{}.graphml".format(self.input_file)
+        #~ networkx.write_graphml(G, output_file)
+
+        # OLD THING 1
+        #~ print("Drawing tree - this could take a few minutes...")
+        #~ output_file = "{}.svg".format(self.input_file)
+        #~ tree.ladderize()   # Flip branches so deeper clades are displayed at top
+        #~ plt.figure(figsize=(24, 24))
+        #~ Phylo.draw(tree)
+        #~ plt.axis('off')
+        #~ plt.savefig(output_file)
+        #~ import pdb; pdb.set_trace()
+        #~ return
+
+        # OLD THING 2
+        #~ net = Phylo.to_networkx(tree)
+        #~ G = networkx.nx_agraph.to_agraph(net)
+        #~ G.node_attr.update(color="red", style="filled")
+        #~ G.edge_attr.update(color="blue", width="2.0")
+        #~ output_file = "{}.dot".format(self.input_file)
+        #~ networkx.drawing.nx_pydot.write_dot(net, output_file)
+        #WARNING - this creates a .dot file but it just doesn't look like a tree!
+
         # dot - filter for drawing directed graphs
         # neato - filter for drawing undirected graphs
         # twopi - filter for radial layouts of graphs
@@ -77,8 +101,11 @@ class ConsensusTree(object):
         # fdp - filter for drawing undirected graphs
         # sfdp - filter for drawing large undirected graphs
         # patchwork - filter for tree maps
-        G.draw(output_file, format='svg', prog='neato')
 
+        #~ G.draw(output_file, format='svg', prog='neato')
+
+
+        # OLD THING 3
         #~ with NamedTemporaryFile() as dotfile:
             #~ #networkx.write_dot(net, dotfile.name)
             #~ networkx.drawing.nx_pydot.write_dot(net, dotfile.name)
