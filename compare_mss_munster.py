@@ -1,10 +1,12 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 """
 Compare the text of two (or more) manuscripts in a Muenster mysql database
 """
 
 import MySQLdb
 import itertools
+import sys
 
 
 def compare(host, db, user, password, table, witnesses):
@@ -12,13 +14,13 @@ def compare(host, db, user, password, table, witnesses):
     Connect to the mysql db and loop through what we find
     """
     assert len(witnesses) == 2
-    print "\nComparison of {} in db {}:{}".format(', '.join(witnesses), db, table)
+    print("\nComparison of {} in db {}:{}".format(', '.join(witnesses), db, table))
 
     db = MySQLdb.connect(host=host, user=user, passwd=password, db=db, charset='utf8')
     cur = db.cursor()
 
     vu_mapping = {}
-    cur.execute("SELECT id, bv, ev, bw, ew FROM {}_ed_vus".format(table))
+    cur.execute("SELECT id, vbeg, vend, wbeg, wend FROM {}_ed_vus".format(table))
     for row in cur.fetchall():
         i, bv, ev, bw, ew = row
         ref = "{}/".format(bv)
@@ -52,20 +54,23 @@ def compare(host, db, user, password, table, witnesses):
             w2_missing += 1
             continue
 
-        print u"VU {} ({}): \n\t{}:\t{} ({})\n\t{}:\t{} ({})".format(row[0], vu_mapping[row[0]], witnesses[0], row[1], row[3], witnesses[1], row[2], row[4])
+        print((u"VU {} ({}): \n\t{}:\t{} ({})\n\t{}:\t{} ({})"
+              .format(row[0], vu_mapping[row[0]], witnesses[0], row[1],
+                      row[3], witnesses[1], row[2], row[4])))
         n += 1
 
-    print "***\n> Showing {} differences between {} and {}".format(n, witnesses[0], witnesses[1])
+    print("***\n> Showing {} differences between {} and {}".format(n, witnesses[0], witnesses[1]))
     if w1_missing:
-        print " > {} is missing in {} places of difference".format(witnesses[0], w1_missing)
+        print(" > {} is missing in {} places of difference".format(witnesses[0], w1_missing))
     if w2_missing:
-        print " > {} is missing in {} places of difference".format(witnesses[1], w2_missing)
+        print(" > {} is missing in {} places of difference".format(witnesses[1], w2_missing))
 
     return n
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser()
+    example = "EXAMPLE: {} -u root -p password -s localhost -d \\\n ECM_23_2 -t Att1J_2plus 03 04".format(sys.argv[0])
+    parser = argparse.ArgumentParser(epilog=example)
     parser.add_argument('witness', nargs='+', help='Witnesses to compare')
     parser.add_argument('-u', '--mysql-user', required=True, help='User to connect to mysql with')
     parser.add_argument('-p', '--mysql-password', required=True, help='Password to connect to mysql with')
@@ -83,6 +88,6 @@ if __name__ == "__main__":
                              args.mysql_password,
                              args.mysql_table,
                              [x.replace(',', '') for x in pair]))
-    print "Summary of differences of pairs: " + ', '.join(str(x) for x in diffs)
-    print "  > average pairwise difference: ", sum(diffs)/(len(diffs)*1.0)
-    print "  > min|max pairwise difference: ", min(diffs), max(diffs)
+    print("Summary of differences of pairs: " + ', '.join(str(x) for x in diffs))
+    print("  > average pairwise difference: {}".format(sum(diffs)/(len(diffs)*1.0)))
+    print("  > min|max pairwise difference: {}|{}".format(min(diffs), max(diffs)))

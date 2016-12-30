@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 """
 Find readings unique to two (or more) manuscripts in a Muenster mysql database
 """
@@ -13,7 +14,7 @@ def compare(host, db, user, password, table, witnesses, quiet=False):
     Connect to the mysql db and loop through what we find
     """
     if not quiet:
-        print "\n\nLooking for unique readings in {} in db {}:{}".format(', '.join(witnesses), db, table)
+        print("\n\nLooking for unique readings in {} in db {}:{}".format(', '.join(witnesses), db, table))
     else:
         sys.stdout.write('+')
         sys.stdout.flush()
@@ -22,7 +23,6 @@ def compare(host, db, user, password, table, witnesses, quiet=False):
     cur = db.cursor()
 
     vu_mapping = {}
-    #cur.execute("SELECT id, bv, ev, bw, ew FROM {}_ed_vus".format(table))
     cur.execute("SELECT id, vbeg, vend, wbeg, wend FROM {}_ed_vus".format(table))
     for row in cur.fetchall():
         i, bv, ev, bw, ew = row
@@ -39,12 +39,12 @@ def compare(host, db, user, password, table, witnesses, quiet=False):
     # Let's get all the readings for our first witness
     query = """SELECT vu_id, ident, greek FROM {}_ed_map
                WHERE witness=%s""".format(table)
-    cur.execute(query, witnesses[0])
+    cur.execute(query, [witnesses[0]])
     wit1_readings = list(cur.fetchall())
     our_witnesses = set(witnesses)
 
     if not quiet:
-        print
+        print()
     for i, (vu_id, ident, greek) in enumerate(wit1_readings):
         # Find all witnesses with that reading
         query = """SELECT witness FROM {}_ed_map
@@ -57,12 +57,13 @@ def compare(host, db, user, password, table, witnesses, quiet=False):
             sys.stdout.flush()
 
         if support == our_witnesses:
-            print "\nUnique reading found ({})".format([', '.join(witnesses)]), vu_id, vu_mapping[vu_id], greek, "\n"
+            print(u"\nUnique reading found ({}): {} {} {}\n".format([', '.join(witnesses)], vu_id, vu_mapping[vu_id], greek))
 
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser()
+    example = "EXAMPLE: {} -u root -p password -s localhost \\\n-d ECM_23_2 -t Att1J_2plus 03".format(sys.argv[0])
+    parser = argparse.ArgumentParser(epilog=example)
     parser.add_argument('witness', nargs='+', help='Witnesses to compare')
     parser.add_argument('-u', '--mysql-user', required=True, help='User to connect to mysql with')
     parser.add_argument('-p', '--mysql-password', required=True, help='Password to connect to mysql with')
@@ -95,4 +96,4 @@ if __name__ == "__main__":
                 witnesses,
                 args.quiet)
 
-    print "\n\nDone"
+    print("\n\nDone")

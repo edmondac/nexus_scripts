@@ -38,14 +38,14 @@ def nexus(host, db, user, password, table, book, perc, filename):
         cur.execute("SELECT id FROM {}_ed_vus ORDER BY id".format(table))
     vus = sorted([x[0] for x in cur.fetchall()])
     target = len(vus) * perc / 100.0
-    print "Including only witnesses extant in {} ({}%) variant units".format(target, perc)
+    print("Including only witnesses extant in {} ({}%) variant units".format(target, perc))
 
     cur.execute("SELECT DISTINCT(witness) FROM {}_ed_map".format(table))
     witnesses = [x[0] for x in cur.fetchall()]
 
     symbols = set()
     matrix = []
-    print
+    print()
     witnesses_copy = witnesses[:]
     for i, wit in enumerate(witnesses_copy):
         sys.stdout.write("\r{}/{}: {}    ".format(i + 1, len(witnesses_copy), wit))
@@ -76,7 +76,7 @@ def nexus(host, db, user, password, table, book, perc, filename):
         if this_count > target:
             matrix.append("{} {}".format(wit, ''.join(stripe)))
         else:
-            print "Deleting witness {} - it is only extant in {} variant unit(s)".format(wit, this_count)
+            print("Deleting witness {} - it is only extant in {} variant unit(s)".format(wit, this_count))
             del witnesses[witnesses.index(wit)]
 
     nexus_data = """#nexus
@@ -132,7 +132,7 @@ def main():
           args.book,
           args.extant_perc,
           args.output_file)
-    print
+    print()
 
 if __name__ == "__main__":
     main()
