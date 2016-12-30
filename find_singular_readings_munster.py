@@ -4,17 +4,22 @@ Look through all manuscripts looking for singular readings
 """
 import MySQLdb
 import itertools
+from collections import defaultdict
 
-def compare_all(host, db, user, password, table):
+def compare_all(host, db, user, password, table, include_wits):
     """
     Connect to the mysql db and loop through what we find
     """
-    print("\nComparison of all witnesses in db {}:{}".format(db, table))
+    if include_wits == ['all']:
+        include_wits = None
+        print("\nLooking for singular readings in all witnesses in db {}:{}".format(db, table))
+    else:
+        print("\nLooking for singular readings in {} in db {}:{}".format(', '.join(include_wits), db, table))
 
     db = MySQLdb.connect(host=host, user=user, passwd=password, db=db, charset='utf8')
     cur = db.cursor()
 
-    #~ print "Setting up indexes..."
+    #~ print("Setting up indexes...")
     #~ try:
         #~ cur.execute("CREATE INDEX vu_id_idx ON {}_ed_map (vu_id)".format(table))
     #~ except MySQLdb.OperationalError as e:
@@ -26,33 +31,41 @@ def compare_all(host, db, user, password, table):
         #~ if "Duplicate key" not in str(e):
             #~ raise
     #~ cur.execute("OPTIMIZE TABLE {}_ed_map".format(table))
-    #~ print "Done"
+    #~ print("Done")
 
-    #~ query = """SELECT COUNT(A.vu_id) FROM Ch18Att_ed_map A INNER JOIN Ch18Att_ed_map B ON A.vu_id=B.vu_id AND A.witness=01 AND B.witness=05 AND A.ident != B.ident"""
-    #~ cur.execute(query)
-    #~ for x in cur.fetchall():
-        #~ print x
-
-    #~ return
-
-    #~ query = """SELECT DISTINCT witness FROM {}_ed_map ORDER BY witness""".format(table)
-    #~ cur.execute(query)
-    #~ witnesses = list(cur.fetchall())
-
-    #~ pairs = list(itertools.combinations(witnesses, 2))
-
-    #~ print len(pairs)
+    cur.execute("SELECT id, bv, ev, bw, ew FROM {}_ed_vus".format(table))
+    vu_map = {}
+    for (vu_id, bv, ev, bw, ew) in cur.fetchall():
+        vu_map[vu_id] = "{}/{}-{}/{}".format(bv, bw, ev, ew)
 
     cur.execute("SELECT vu_id FROM {}_ed_map".format(table))
     vu_ids = sorted(set(x[0] for x in cur.fetchall()))
+
+    sing_read_map = defaultdict(int)
+
     for vu in vu_ids:
         # NOTE: the GROUP_CONCAT things only make sense for count == 1...
-        query = "SELECT GROUP_CONCAT(witness), vu_id, ident, GROUP_CONCAT(greek), COUNT(ident) as count FROM {}_ed_map WHERE vu_id = {} GROUP BY ident".format(table, vu)
+        query = "SELECT ident, COUNT(ident) as count FROM {}_ed_map WHERE vu_id = {} GROUP BY ident".format(table, vu)
         cur.execute(query)
-        for (wits, vu_id, ident, greek, count) in cur.fetchall():
-            if count != 1:
-                continue
-            print("Found singular reading: Witness {} reads {} in VU {}.".format(wits, greek, vu_id))
+        singular_idents = []
+        for (ident, count) in cur.fetchall():
+            if count == 1:
+                singular_idents.append(ident)
+
+        for ident in singular_idents:
+            query = "SELECT witness, greek FROM {}_ed_map WHERE vu_id = {} AND ident = {}".format(table, vu, ident)
+            cur.execute(query)
+            results = cur.fetchall()
+            assert len(results) == 1
+            wits, greek = results[0]
+            if include_wits is None or wits in include_wits:
+                print("Found singular reading: Witness {} reads {} in VU {} ({}).".format(wits, greek, vu, vu_map[vu]))
+                sing_read_map[wits] += 1
+
+    scores = sorted(set(sing_read_map.values()), reverse=True)
+    for score in scores:
+        print("Witnesses with {} singular readings:".format(score))
+        print("\t{}".format(", ".join(x for x in sing_read_map.keys() if sing_read_map[x] == score)))
 
 
 if __name__ == "__main__":
@@ -63,6 +76,7 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--mysql-host', required=True, help='Host to connect to')
     parser.add_argument('-d', '--mysql-db', required=True, help='Database to connect to')
     parser.add_argument('-t', '--mysql-table', required=True, help='Table name to get data from')
+    parser.add_argument('witness', nargs='+', help='Which witnesses to look for (can be "all")')
 
     args = parser.parse_args()
 
@@ -70,4 +84,5 @@ if __name__ == "__main__":
                 args.mysql_db,
                 args.mysql_user,
                 args.mysql_password,
-                args.mysql_table)
+                args.mysql_table,
+                args.witness)
