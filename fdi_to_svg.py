@@ -6,8 +6,12 @@ Note - this is strictly restricted to the FDI files I've been using...
 
 import svgwrite
 import re
+import sys
 from collections import defaultdict
 import math
+import logging
+logger = logging.getLogger(__name__)
+
 
 taxon_re = re.compile("TAXON_NAME;([^;]+);TAXON_NAME_HEIGHT;([^;]+);TAXON_NAME_COLOR;[0-9]+;TAXON_FREQUENCY;[0-9]+;TAXON_ORIG_FREQUENCY;[0-9]+;TAXON_GEOGRAPHY;;TAXON_PHENOTYPE;;TAXON_LINEAGE;;TAXON_GROUP1;Group1;;TAXON_GROUP2;Group2;;TAXON_GROUP3;Group3;;TAXON_X;([^;]+);TAXON_Y;([^;]+);TAXON_COLOR_PIE1;([^;]+);TAXON_PIE_FREQUENCY1;[0-9]+;TAXON_STYLE_PIE1;SOLID;TAXON_LINE_WIDTH;[0-9]+;TAXON_LINE_COLOR;[0-9]+;TAXON_LINE_STYLE;SOLID;TAXON_ACTIVE;(TRUE|FALSE)")
 
@@ -41,7 +45,7 @@ def parse(fdi_f):
             line = line.strip()
             if not line:
                 continue
-            print("> {}".format(line))
+            logger.debug(line)
             if in_params:
                 if line.startswith('TAXON_NAME'):
                     in_params = False
@@ -60,8 +64,8 @@ def parse(fdi_f):
                     raise ValueError("Didn't understand this line: {}".format(line))
                 name, fontsize, x, y, colour, active = match.groups()
                 if active != 'TRUE':
-                    print("WARNING: Taxon {} is not active - it will have been "
-                          "subsumed into another taxon".format(name))
+                    logger.warning("Taxon {} is not active - it will have been "
+                                   "subsumed into another taxon".format(name))
                     continue
 
                 t = Taxon(name, int(fontsize), int(x), int(y), colmap[colour], 1)
@@ -91,8 +95,6 @@ def parse(fdi_f):
         taxa[t].weight = len(v) + 1
         taxa[t].name = ', '.join([taxa[t].name.strip()] + [x.strip() for x in v])
 
-    #~ print("Taxa: {}".format(taxa))
-    #~ print("Links: {}".format(links))
     return params, taxa, links
 
 
@@ -122,9 +124,9 @@ def convert(fdi_f, svg_f, shrink_factor=1):
     offset_y = padding // 2 - min_y
 
     sizemult = size_x * shrink_factor / 600.0
-    print("Magic size multiplication faction: {}".format(sizemult))
+    logger.info("Magic size multiplication faction: {}".format(sizemult))
 
-    print(str((min_x, max_x, min_y, max_y)))
+    logger.debug(str((min_x, max_x, min_y, max_y)))
 
     dwg = svgwrite.Drawing(filename=svg_f, size=(size_x + padding, size_y + padding))
 
@@ -160,7 +162,7 @@ def convert(fdi_f, svg_f, shrink_factor=1):
         dwg.add(g)
 
     dwg.save()
-    print("\nWritten {}".format(svg_f))
+    logger.info("Written {}".format(svg_f))
 
 
 if __name__ == "__main__":
@@ -170,7 +172,21 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert an FDI file into an SVG")
     parser.add_argument('fdifile', help='FDI input filename')
     parser.add_argument('--shrink', default=1, type=float, help='Shrink factor to apply to circles (e.g. 0.5). Default is 1.')
+    parser.add_argument('-v', '--verbose', action="store_true", help="Tell me what's going on")
     args = parser.parse_args()
+
+    h1 = logging.StreamHandler(sys.stderr)
+    rootLogger = logging.getLogger()
+    rootLogger.addHandler(h1)
+    formatter = logging.Formatter('[%(asctime)s] [%(process)s] [%(filename)s:%(lineno)s] [%(levelname)s] %(message)s')
+    h1.setFormatter(formatter)
+
+    if args.verbose:
+        rootLogger.setLevel(logging.DEBUG)
+        logger.debug("Verbose mode")
+    else:
+        rootLogger.setLevel(logging.INFO)
+        logger.debug("Run with --verbose for debug mode")
 
     svgfile = "{}.svg".format(os.path.splitext(args.fdifile)[0])
     convert(args.fdifile, svgfile, args.shrink)
