@@ -72,11 +72,11 @@ def convert(fdi_f, dot_f, use_distance=False):
 
     with open(dot_f, 'w') as f:
         # Set splines=true on the graph, to avoid edges overlapping nodes
-        dot_data = dot_data.replace('{', '{\nsplines="true";', 1)
+        dot_data = dot_data.replace('{', '{\nsplines="true";\noverlap="scale";', 1)
         f.write(dot_data)
 
     logger.info("See {}".format(dot_f))
-    logger.info("Recommendation: fdp -Tsvg {} > {}.svg".format(dot_f, dot_f))
+    logger.info("Recommendation: neato -Tsvg {} > {}.svg".format(dot_f, dot_f))
 
 if __name__ == "__main__":
     import argparse
