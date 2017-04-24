@@ -24,7 +24,7 @@ def calc_distance(x1, y1, x2, y2):
     return math.sqrt(x_delta ** 2 + y_delta ** 2)
 
 
-def convert(fdi_f, dot_f):
+def convert(fdi_f, dot_f, use_distance=False):
     params, taxa, links = parse(fdi_f)
 
     print(params)
@@ -54,13 +54,29 @@ def convert(fdi_f, dot_f):
         edges.append((start, end, distance))
 
     for (start, end, distance) in edges:
-        logger.debug("{} to {} is {}".format(taxa[start].name, taxa[end].name, distance))
-        G.add_edge(start, end, len=max_dist / distance, label=int(distance))
+        if use_distance:
+            if distance:
+                length = 1.0 * max_dist / distance
+            else:
+                length = 0.1
+
+            logger.debug("{} to {} is {}".format(taxa[start].name, taxa[end].name, distance))
+            G.add_edge(start, end, len=length, label=int(distance))
+        else:
+            G.add_edge(start, end, label=int(distance))
 
     networkx.write_dot(G, dot_f)
+
+    with open(dot_f, 'r') as f:
+        dot_data = f.read()
+
+    with open(dot_f, 'w') as f:
+        # Set splines=true on the graph, to avoid edges overlapping nodes
+        dot_data = dot_data.replace('{', '{\nsplines="true";', 1)
+        f.write(dot_data)
+
     logger.info("See {}".format(dot_f))
     logger.info("Recommendation: fdp -Tsvg {} > {}.svg".format(dot_f, dot_f))
-
 
 if __name__ == "__main__":
     import argparse
@@ -69,6 +85,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert an FDI file into an SVG")
     parser.add_argument('fdifile', help='FDI input filename')
     parser.add_argument('-v', '--verbose', action="store_true", help="Tell me what's going on")
+    parser.add_argument('-d', '--use-distance', action="store_true", help="Try to use the distances in the diagram. "
+                        "fdp will use them, but sometimes fails to make a good-looking network.")
     args = parser.parse_args()
 
     h1 = logging.StreamHandler(sys.stderr)
@@ -85,4 +103,4 @@ if __name__ == "__main__":
         logger.debug("Run with --verbose for debug mode")
 
     dotfile = "{}.dot".format(os.path.splitext(args.fdifile)[0])
-    convert(args.fdifile, dotfile)
+    convert(args.fdifile, dotfile, args.use_distance)
