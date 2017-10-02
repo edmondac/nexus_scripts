@@ -2,3 +2,7 @@ Scripts for making and manipulating NEXUS files, along with some for
 dealing with input databases (such as Munster ones).
 
 Use a virtualenv built with the supplied requirements.txt
+
+You'll need these installed:
+ * libmysqlclient-dev (for Ubuntu)
+ * python3.5-dev
