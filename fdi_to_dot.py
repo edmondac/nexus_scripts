@@ -65,7 +65,7 @@ def convert(fdi_f, dot_f, use_distance=False):
         else:
             G.add_edge(start, end, label=int(distance))
 
-    networkx.write_dot(G, dot_f)
+    networkx.drawing.nx_pydot.write_dot(G, dot_f)
 
     with open(dot_f, 'r') as f:
         dot_data = f.read()

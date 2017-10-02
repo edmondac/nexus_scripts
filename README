@@ -6,3 +6,4 @@ Use a virtualenv built with the supplied requirements.txt
 You'll need these installed:
  * libmysqlclient-dev (for Ubuntu)
  * python3.5-dev
+ * graphviz libgraphviz-dev
