@@ -4,7 +4,7 @@ DNA = 'ACTG'
 PROTIEN = 'FSTKEYVQMCLAWPHDRIG'  # Amino acids... NOTE: We miss out 'N' because Network.exe gets confused by it...
 
 
-def subset(input_file, output_file, taxa, trans, frag_perc):
+def subset(input_file, output_file, taxa, trans, frag_perc, skip_complex_characters=False):
     """
     Create a subset of the supplied nexus file using only the listed taxa.
 
@@ -13,6 +13,7 @@ def subset(input_file, output_file, taxa, trans, frag_perc):
     @param taxa: list of taxa to include
     @param trans: characters to transform into
     @param frag_perc: (int) fragmentation percentage above which witnesses are excluded
+    @param skip_complex_characters: (bool) skip characters with too many states for the chosen encoding
 
     Constant characters are removed.
     """
@@ -52,6 +53,7 @@ def subset(input_file, output_file, taxa, trans, frag_perc):
 
     keep = []
     convs = {}
+    complex_chars = []
     for i, a in enumerate(list(stripes.values())[0]):
         col = set()
         for k in stripes:
@@ -63,8 +65,15 @@ def subset(input_file, output_file, taxa, trans, frag_perc):
 
         if trans:
             # Transform
-            if len([a for a in col if a not in ('-', '?')]) > len(trans):
-                raise ValueError("More than {} character states - cannot do transform".format(len(trans)))
+            n_states = len([a for a in col if a not in ('-', '?')])
+            if n_states > len(trans):
+                if skip_complex_characters:
+                    print("Character has {} character states - skipping".format(n_states))
+                    complex_chars.append(i)
+                    continue
+                else:
+                    raise ValueError("More than {} character states ({}) - cannot do transform"
+                                     .format(len(trans), n_states))
             use = list(tuple(trans))
 
         for s in col:
@@ -96,11 +105,15 @@ matrix
         for k in stripes:
             output.write("{} ".format(k))
             for i in keep:
-                output.write(convs[i][stripes[k][i]])
+                if i not in complex_chars:
+                    assert i in convs
+                    output.write(convs[i][stripes[k][i]])
             output.write('\n')
 
         output.write(";\nEND;\n")
 
+    if complex_chars:
+        print("WARNING: Skipped {} characters as they were too complex for the encoding".format(len(complex_chars)))
     print("File {} written".format(output))
 
 if __name__ == "__main__":
@@ -119,6 +132,8 @@ if __name__ == "__main__":
                         help='Output filename')
     parser.add_argument('taxon', nargs='+',
                         help="Taxa to include (can be 'all')")
+    parser.add_argument('--ignore-too-many-character-states', default=False, action='store_true',
+                        help="For characters with too many states for the encoding, just ignore them. Default is to abort.")
     args = parser.parse_args()
 
     transform = None
@@ -130,4 +145,5 @@ if __name__ == "__main__":
     if not transform:
         print("Not transforming symbols - see -a or -d for details")
 
-    subset(args.input_file, args.output_file, args.taxon, transform, args.fragmentation_level)
+    subset(args.input_file, args.output_file, args.taxon, transform, args.fragmentation_level,
+           args.ignore_too_many_character_states)
