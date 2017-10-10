@@ -82,7 +82,7 @@ if __name__ == "__main__":
     import argparse
     import os.path
 
-    parser = argparse.ArgumentParser(description="Convert an FDI file into an SVG")
+    parser = argparse.ArgumentParser(description="Convert an FDI file into a DOT file")
     parser.add_argument('fdifile', help='FDI input filename')
     parser.add_argument('-v', '--verbose', action="store_true", help="Tell me what's going on")
     parser.add_argument('-d', '--use-distance', action="store_true", help="Try to use the distances in the diagram. "
