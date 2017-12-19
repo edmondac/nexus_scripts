@@ -29,7 +29,7 @@ def parse_dot(dot_f):
 
 def convert(dot_f, net_f):
     """
-    Convert a dot file into Payek NET format
+    Convert a dot file into Pajek NET format
     """
     G = parse_dot(dot_f)
 
