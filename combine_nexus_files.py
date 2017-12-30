@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/python
 
 # NOTE: The '''# -*- coding: utf-8 -*-''' first line here is important as
 # otherwise you get a file that MrBayes can't read properly (for some reason...)
@@ -100,7 +99,7 @@ class Nexus(object):
         """
         Load from existing nexus file
         """
-        print "Loading {}".format(filename)
+        print("Loading {}".format(filename))
         with open(filename) as f:
             data = f.read()
 
@@ -110,19 +109,19 @@ class Nexus(object):
         taxa = match.group(2).splitlines()
         assert len(taxa) == ntax, (len(taxa), ntax)
         self.taxa = taxa
-        print "  Loaded {} taxa: {}".format(ntax, ', '.join(taxa))
+        print(("  Loaded {} taxa: {}".format(ntax, ', '.join(taxa))))
 
         self.nchar = int(match.group(3))
         self.symbols = match.group(4).split()
-        print "  Loaded {} characters and {} symbols ({})".format(
-            self.nchar, len(self.symbols), ', '.join(self.symbols))
+        print("  Loaded {} characters and {} symbols ({})".format(
+            self.nchar, len(self.symbols), ', '.join(self.symbols)))
 
         for stripe in match.group(5).splitlines():
             taxon, chars = stripe.split(' ', 1)
             assert len(chars) == self.nchar
             self.lines[taxon] = chars
 
-        print "  Loaded matrix"
+        print("  Loaded matrix")
 
     def add_nexus(self, other_nexus):
         """
@@ -152,7 +151,7 @@ class Nexus(object):
         are extant in extant_perc (percentage) of characters.
         """
         target_chars = self.nchar * extant_perc / 100.0
-        print "Only including taxa extant in {} ({}%) of characters".format(target_chars, extant_perc)
+        print("Only including taxa extant in {} ({}%) of characters".format(target_chars, extant_perc))
 
         #self.taxa = self.taxa[:3] ## FIXME
         #self.nchar = 1000 ##FIXME
@@ -164,7 +163,7 @@ class Nexus(object):
             line = self.lines[t]
             extant = [x for x in line if x not in (MISSING, GAP)]
             if len(extant) < target_chars:
-                print "Deleting {} as it's only extant in {} characters".format(t, len(extant))
+                print(("Deleting {} as it's only extant in {} characters".format(t, len(extant))))
                 del taxa[taxa.index(t)]
                 continue
             matrix.append('{} {}'.format(t, line[:self.nchar]))##FIXME
@@ -177,9 +176,9 @@ class Nexus(object):
                                missing=MISSING,
                                gap=GAP)
         with open(output, 'w') as f:
-            f.write(unicode(data))
+            f.write(str(data))
 
-        print "Written combined nexus file {}".format(output)
+        print(("Written combined nexus file {}".format(output)))
 
 
 def combine(input_files, output_file, perc):

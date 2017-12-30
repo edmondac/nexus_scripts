@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Look through all manuscripts looking for singular readings
 """
@@ -19,19 +18,19 @@ def compare_all(host, db, user, password, table, include_wits):
     db = MySQLdb.connect(host=host, user=user, passwd=password, db=db, charset='utf8')
     cur = db.cursor()
 
-    #~ print("Setting up indexes...")
-    #~ try:
-        #~ cur.execute("CREATE INDEX vu_id_idx ON {}_ed_map (vu_id)".format(table))
-    #~ except MySQLdb.OperationalError as e:
-        #~ if "Duplicate key" not in str(e):
-            #~ raise
-    #~ try:
-        #~ cur.execute("CREATE INDEX witness_idx ON {}_ed_map (witness(10))".format(table))
-    #~ except MySQLdb.OperationalError as e:
-        #~ if "Duplicate key" not in str(e):
-            #~ raise
-    #~ cur.execute("OPTIMIZE TABLE {}_ed_map".format(table))
-    #~ print("Done")
+    print("Setting up indexes...")
+    try:
+         cur.execute("CREATE INDEX vu_id_idx ON {}_ed_map (vu_id)".format(table))
+     except MySQLdb.OperationalError as e:
+         if "Duplicate key" not in str(e):
+             raise
+     try:
+         cur.execute("CREATE INDEX witness_idx ON {}_ed_map (witness(10))".format(table))
+     except MySQLdb.OperationalError as e:
+         if "Duplicate key" not in str(e):
+             raise
+     cur.execute("OPTIMIZE TABLE {}_ed_map".format(table))
+     print("Done")
 
     cur.execute("SELECT id, bv, ev, bw, ew FROM {}_ed_vus".format(table))
     vu_map = {}

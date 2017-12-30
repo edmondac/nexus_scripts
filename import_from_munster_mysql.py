@@ -10,7 +10,7 @@ def load_witness(witness, cur, table, dialect):
     Load a particular witness from the db
     """
     cur.execute("SELECT * FROM {table} WHERE {HSNR} = %s".format(**dialect), (witness, ))
-    reverse = {v: k for k, v in dialect.items()}
+    reverse = {v: k for k, v in list(dialect.items())}
     field_names = [reverse.get(i[0]) for i in cur.description]
     attestations = []
     while True:
@@ -27,7 +27,7 @@ def load_witness(witness, cur, table, dialect):
         ident = obj['VARID2']  # assumption is that this is ECM2's variant id
 
         # Find ident or make a nWEND one
-        cur.execute(u"""SELECT id FROM {}_ed_vus WHERE BOOK=%s AND CHBEG=%s
+        cur.execute("""SELECT id FROM {}_ed_vus WHERE BOOK=%s AND CHBEG=%s
                         AND CHEND=%s AND VBEG=%s AND VEND=%s AND WBEG=%s
                         AND WEND=%s""".format(table),
                     (obj['BOOK'], obj['CHBEG'], obj['CHEND'], obj['VBEG'],
@@ -38,7 +38,7 @@ def load_witness(witness, cur, table, dialect):
         else:
             raise ValueError("Can't find vu")
 
-        cur.execute(u"""INSERT INTO {}_ed_map (witness, vu_id, greek, ident)
+        cur.execute("""INSERT INTO {}_ed_map (witness, vu_id, greek, ident)
                         VALUES (%s, %s, %s, %s);""".format(table),
                     (get_ga(witness), vu_id, greek, ident))
 
@@ -105,7 +105,7 @@ def get_dialect(db, table):
     if not match:
         raise NoMatch("Can't identify dialect")
 
-    print "Dialect {} detected".format(dialects.index(match))
+    print("Dialect {} detected".format(dialects.index(match)))
 
     return {default[i]: match[i] for i in range(len(default))}
 
@@ -160,15 +160,15 @@ def load_all(host, db, user, password, table):
     for row in cur.fetchall():
         witnesses.add(row[0])
 
-    print
+    print()
     for i, wit in enumerate(witnesses):
         sys.stdout.write("\r{} / {}: {}     ".format(i + 1, len(witnesses), wit))
         sys.stdout.flush()
         try:
             load_witness(wit, cur, table, d)
         except Exception as e:
-            print e
-            print
+            print(e)
+            print()
             raise
         else:
             db.commit()
@@ -190,7 +190,7 @@ def main():
              args.mysql_user,
              args.mysql_password,
              args.table)
-    print
+    print()
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """
 Attempt to work out what MrBayes means when it says "There are 80 characters
 incompatible with the specified coding bias. These characters will be excluded."
@@ -27,7 +26,7 @@ class Character(object):
                 continue
             occurs = len([a for a in self.readings if a == r])
             if occurs > 1:
-                print "Reading {} occurs {} times".format(r, occurs)
+                print("Reading {} occurs {} times".format(r, occurs))
                 x += 1
 
         return x > 1
@@ -56,15 +55,15 @@ def analyse(input_file):
 
     inf = 0
     notinf = 0
-    for char in matrix.values():
+    for char in list(matrix.values()):
         if char.is_informative():
             inf += 1
         else:
             notinf += 1
 
-    print "Matrix has {} taxa and {} characters".format(ntax, len(matrix))
-    print "  {} characters are informative".format(inf)
-    print "  {} characters are uninformative".format(notinf)
+    print("Matrix has {} taxa and {} characters".format(ntax, len(matrix)))
+    print("  {} characters are informative".format(inf))
+    print("  {} characters are uninformative".format(notinf))
 
 
 if __name__ == "__main__":

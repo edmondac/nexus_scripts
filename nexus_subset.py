@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 DNA = 'ACTG'
 PROTIEN = 'FSTKEYVQMCLAWPHDRIG'  # Amino acids... NOTE: We miss out 'N' because Network.exe gets confused by it...
 

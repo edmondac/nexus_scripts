@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
 Find readings unique to two (or more) manuscripts in a Muenster mysql database

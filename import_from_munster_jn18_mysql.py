@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/python
 
 import sys
 import MySQLdb
@@ -14,19 +13,19 @@ class Translator(object):
         #  and brackets representing who knows what, which we'll leave alone
         #  and some odd characters that I don't understand, which we'll remove
 
-        self.uni_from = u'.[]() abgdezhqiklmnxoprs~tufcyw0123456789:-ˆ¿¯,…?/'
-        self.uni_to = u'___() αβγδεζηθικλμνξοπρσςτυφχψω0123456789:-_______'
+        self.uni_from = '.[]() abgdezhqiklmnxoprs~tufcyw0123456789:-ˆ¿¯,…?/'
+        self.uni_to = '___() αβγδεζηθικλμνξοπρσςτυφχψω0123456789:-_______'
         self.translate_table = {ord(frm): self.uni_to[i]
                                 for i, frm in enumerate(self.uni_from)}
 
     def __call__(self, unicode_in):
         for x in unicode_in:
             if x not in self.uni_from:
-                print x
-                print unicode_in
+                print(x)
+                print(unicode_in)
                 raise ValueError((x, unicode_in))
         ret = unicode_in.translate(self.translate_table)
-        ret = ret.replace(u'_', u'')
+        ret = ret.replace('_', '')
         return ret
 translate = Translator()
 
@@ -53,11 +52,11 @@ def load_witness(witness, cur, table):
         rdg = obj['RDG'].strip()
 
         # Square brackets...
-        rdg = rdg.replace(u'»', u'[')
-        rdg = rdg.replace(u'¼', u']')
+        rdg = rdg.replace('»', '[')
+        rdg = rdg.replace('¼', ']')
 
         if obj['RDG'] == '\x88 \xbb2\xbca\r':
-            print "Wierd: {}".format(obj['RDG'])
+            print("Wierd: {}".format(obj['RDG']))
             continue
         if obj['SUFF'] == '*':
             # Original firsthand reading (before he corrected it)
@@ -80,11 +79,11 @@ def load_witness(witness, cur, table):
 
         else:
             # Translate to unicode greek
-            greek = translate(unicode(rdg.lower()))
+            greek = translate(str(rdg.lower()))
             ident = None
 
         # Find ident or make a new one
-        cur.execute(u"""SELECT id FROM {}_ed_vus WHERE
+        cur.execute("""SELECT id FROM {}_ed_vus WHERE
                         BV=%s AND EV=%s AND BW=%s AND EW=%s""".format(table),
                     (obj['BV'], obj['EV'], obj['BW'], obj['EW']))
         for row in cur.fetchall():
@@ -94,13 +93,13 @@ def load_witness(witness, cur, table):
             raise ValueError("Can't find vu")
 
         if ident is None:
-            cur.execute(u"SELECT ident FROM {}_ed_map WHERE vu_id=%s AND greek=%s".format(table),
+            cur.execute("SELECT ident FROM {}_ed_map WHERE vu_id=%s AND greek=%s".format(table),
                         (vu_id, greek))
             for row in cur.fetchall():
                 ident = row[0]
                 break
             else:
-                cur.execute(u"SELECT MAX(ident) FROM {}_ed_map WHERE vu_id=%s".format(table),
+                cur.execute("SELECT MAX(ident) FROM {}_ed_map WHERE vu_id=%s".format(table),
                             (vu_id, ))
                 row = cur.fetchone()
                 if row[0] is None:
@@ -108,7 +107,7 @@ def load_witness(witness, cur, table):
                 else:
                     ident = row[0] + 1
 
-        cur.execute(u"""INSERT INTO {}_ed_map (witness, vu_id, greek, ident)
+        cur.execute("""INSERT INTO {}_ed_map (witness, vu_id, greek, ident)
                         VALUES (%s, %s, %s, %s);""".format(table),
                     (witness, vu_id, greek, ident))
 
@@ -154,15 +153,15 @@ def load_all(host, db, user, password, table):
     for row in cur.fetchall():
         witnesses.add(row[0])
 
-    print
+    print()
     for i, wit in enumerate(witnesses):
         sys.stdout.write("\r{} / {}: {}     ".format(i + 1, len(witnesses), wit))
         sys.stdout.flush()
         try:
             load_witness(wit, cur, table)
         except Exception as e:
-            print e
-            print
+            print(e)
+            print()
         else:
             db.commit()
 

@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/python
-
 import sys
 import string
 import MySQLdb
