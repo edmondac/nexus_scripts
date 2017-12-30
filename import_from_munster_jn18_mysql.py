@@ -27,6 +27,8 @@ class Translator(object):
         ret = unicode_in.translate(self.translate_table)
         ret = ret.replace('_', '')
         return ret
+
+
 translate = Translator()
 
 
