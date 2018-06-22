@@ -1,7 +1,10 @@
 Scripts for making and manipulating NEXUS files, along with some for 
 dealing with input databases (such as from the INTF in Münster).
 
-The scripts were designed to work with my input data, and may not always work properly with other data. If it doesn't work, and you would like to help improve the software then please create an issue at https://github.com/edmondac/nexus_scripts/issues
+The scripts were designed to work with my input data, and may not always
+work properly with other data. If it doesn't work, and you would like to 
+help improve the software then please create an issue at 
+https://github.com/edmondac/nexus_scripts/issues
 
 Use a virtualenv built with the supplied requirements.txt
 
