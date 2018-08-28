@@ -1,6 +1,6 @@
 import json
 
-def relable(fdi, js):
+def relabel(fdi, js):
     with open(js) as f:
         mapping = json.load(f)
     with open(fdi) as x:
@@ -24,4 +24,4 @@ if __name__ == "__main__":
     parser.add_argument('jsonfile', help='JSON mapping filename')
     args = parser.parse_args()
 
-    relable(args.fdifile, args.jsonfile)
+    relabel(args.fdifile, args.jsonfile)

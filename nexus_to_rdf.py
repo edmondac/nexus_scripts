@@ -10,7 +10,7 @@ import os
 
 def convert(inputfile, ignore_missing):
     """
-    Convert NEXUS to RDF and create a JSON mapping for use by relable_fdi.py.
+    Convert NEXUS to RDF and create a JSON mapping for use by relabel_fdi.py.
     """
     with open(inputfile) as f:
         data = f.readlines()
@@ -105,7 +105,7 @@ def convert(inputfile, ignore_missing):
         json.dump(mapping, m)
 
     print("See {}".format(outputfile))
-    print("Use {} with relable_fdi.py".format(mappingfile))
+    print("Use {} with relabel_fdi.py".format(mappingfile))
 
 if __name__ == "__main__":
     import argparse
