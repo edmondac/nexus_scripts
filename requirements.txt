@@ -1,9 +1,7 @@
 decorator
 flake8
 mccabe
-mysqlclient
 networkx
-pkg-resources
 pycodestyle
 pydot
 pydotplus
