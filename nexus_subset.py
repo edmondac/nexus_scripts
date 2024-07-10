@@ -66,11 +66,12 @@ def subset(input_file, output_file, taxa, trans, frag_perc, skip_complex_charact
             n_states = len([a for a in col if a not in ('-', '?')])
             if n_states > len(trans):
                 if skip_complex_characters:
-                    print("Character has {} character states - skipping".format(n_states))
+                    print("Character {} has {} character states - skipping".format(i, n_states))
                     complex_chars.append(i)
                     continue
                 else:
-                    raise ValueError("More than {} character states ({}) - cannot do transform"
+                    raise ValueError("More than {} character states ({}) - cannot do transform "
+                                     "(consider using --ignore-too-many-character-states)"
                                      .format(len(trans), n_states))
             use = list(tuple(trans))
 
